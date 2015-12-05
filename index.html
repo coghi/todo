@@ -4,72 +4,116 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>todo</title>
-		<link rel="stylesheet" href="css/base.css">
-		<link rel="stylesheet" href="css/index.css">
+		<link rel="stylesheet" href="./css/base.css">
+		<link rel="stylesheet" href="./css/index.css">
 	</head>
 	<body>
-		<section class="todoapp">
-			<header class="header">
-				<h1>todos</h1>
-				<input class="new-todo" placeholder="What needs to be done?" autofocus>
-			</header>
-			<!-- This section should be hidden by default and shown when there are todos -->
-			<section class="main">
-				<input class="toggle-all" type="checkbox">
-				<label for="toggle-all">Mark all as complete</label>
-				<ul class="todo-list">
-					<!-- These are here just to show the structure of the list items -->
-					<!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-					<li class="completed">
-						<div class="view">
-							<input class="toggle" type="checkbox" checked>
-							<label>Taste JavaScript</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="Create a TodoMVC template">
-					</li>
-					<li>
-						<div class="view">
-							<input class="toggle" type="checkbox">
-							<label>Buy a unicorn</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="Rule the web">
-					</li>
-				</ul>
-			</section>
-			<!-- This footer should hidden by default and shown when there are todos -->
-			<footer class="footer">
-				<!-- This should be `0 items left` by default -->
-				<span class="todo-count"><strong>0</strong> item left</span>
-				<!-- Remove this if you don't implement routing -->
-				<ul class="filters">
-					<li>
-						<a class="selected" href="#/">All</a>
-					</li>
-					<li>
-						<a href="#/active">Active</a>
-					</li>
-					<li>
-						<a href="#/completed">Completed</a>
-					</li>
-				</ul>
-				<!-- Hidden if no completed items are left ↓ -->
-				<button class="clear-completed">Clear completed</button>
-			</footer>
+		<section id="container" class="todoapp">
+			
+			<script id="template" type="text/ractive">
+				<header class="header">
+					<h1>tarefas</h1>
+					<input class="new-todo" placeholder="What needs to be done?" autofocus value="{{conteudo_novo}}" on-enter="adicionar()">
+				</header>
+				
+				<section class="main">	
+					<input class="toggle-all" type="checkbox">
+					<label for="toggle-all">Mark all as complete</label>
+					<ul class="todo-list">
+						{{#tarefas:i}}
+						<li class="{{#if checked}}completed{{/if}} {{#if edicao}}editing{{/if}}" on-dblclick="editar(i)" on-enter="salvar(i)" on-escape="cancelar(i)">
+							<div class="view">
+								<input class="toggle" type="checkbox" checked="{{checked}}">
+								<label>{{conteudo}}</label>
+								<button class="destroy" on-tap="deletar(i)"></button>
+							</div>
+							<input class="edit" value="{{conteudo}}">
+						</li>
+						{{/tarefas}}
+					</ul>
+				</section>
+				<footer class="footer">
+					<span class="todo-count"><strong>0</strong> item left</span>
+					<ul class="filters">
+						<li>
+							<a class="selected" href="#/">All</a>
+						</li>
+						<li>
+							<a href="#/active">Active</a>
+						</li>
+						<li>
+							<a href="#/completed">Completed</a>
+						</li>
+					</ul>		
+					<button class="clear-completed">Clear completed</button>
+				</footer>
+			</script>
+			
 		</section>
 		<footer class="info">
 			<p>Double-click to edit a todo</p>
 			<p>Created by <a href="http://coghi.net">Paulo Coghi</a></p>
 			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
 		</footer>
-		<script src='http://cdn.ractivejs.org/latest/ractive.js'></script>
+		<script src='./js/ractive.js'></script>
+		<script src='./js/ractive-events-keys.js'></script>
+		<script src='./js/ractive-events-tap.js'></script>
         
         <script>
 
             var todo = new Ractive({
 
+            	el: "#container",
 
+            	template: "#template",
+
+            	data: {
+            		tarefas: [
+	            		{"id":1,"conteudo":"Fazer o Front End","checked":0,"created_at":"2015-10-17 17:45:49","updated_at":"2015-10-17 18:28:37"},
+	            		{"id":3,"conteudo":"Tarefa 3","checked":0,"created_at":"2015-10-17 17:54:02","updated_at":"2015-10-17 17:54:02"},
+	            		{"id":4,"conteudo":"Tarefa 59","checked":0,"created_at":"2015-10-24 15:35:26","updated_at":"2015-10-24 15:35:26"},
+	            		{"id":5,"conteudo":"Tarefa 226","checked":0,"created_at":"2015-10-24 15:35:30","updated_at":"2015-10-24 15:35:30"}
+            		],
+
+            		conteudo_novo: ""
+            	},
+
+            	adicionar: function()
+            	{
+            		var conteudo = this.get('conteudo_novo');
+
+            		this.push('tarefas', {
+            			"conteudo":conteudo,
+            			"checked":0
+            		});
+
+            		this.set('conteudo_novo', '');
+            	},
+
+            	deletar: function(indice)
+            	{
+            		this.splice('tarefas', indice, 1);
+            	},
+
+            	editar: function(indice)
+            	{
+            		var conteudo_antigo = this.get('tarefas.' + indice + '.conteudo');
+
+            		this.set('tarefas.' + indice + '.edicao', conteudo_antigo);
+            	},
+
+            	salvar: function(indice)
+            	{
+            		this.set('tarefas.' + indice + '.edicao', '');
+            	},
+
+            	cancelar: function(indice)
+            	{
+            		var conteudo_antigo = this.get('tarefas.' + indice + '.edicao');
+
+            		this.set('tarefas.' + indice + '.conteudo', conteudo_antigo);
+            		this.set('tarefas.' + indice + '.edicao', '');
+            	}
 
             });
 
